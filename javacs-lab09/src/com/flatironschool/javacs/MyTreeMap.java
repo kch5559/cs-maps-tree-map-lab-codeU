@@ -25,14 +25,13 @@ public class MyTreeMap<K, V> implements Map<K, V> {
 
 	/**
 	 * Represents a node in the tree.
-	 *
 	 */
 	protected class Node {
 		public K key;
 		public V value;
 		public Node left = null;
 		public Node right = null;
-		
+
 		/**
 		 * @param key
 		 * @param value
@@ -44,7 +43,7 @@ public class MyTreeMap<K, V> implements Map<K, V> {
 			this.value = value;
 		}
 	}
-		
+
 	@Override
 	public void clear() {
 		size = 0;
@@ -57,28 +56,39 @@ public class MyTreeMap<K, V> implements Map<K, V> {
 	}
 
 	/**
-	 * Returns the entry that contains the target key, or null if there is none. 
-	 * 
+	 * Returns the entry that contains the target key, or null if there is none.
+	 *
 	 * @param target
 	 */
 	private Node findNode(Object target) {
 		// some implementations can handle null as a key, but not this one
 		if (target == null) {
-            throw new NullPointerException();
-	    }
-		
+			throw new NullPointerException();
+		}
+
 		// something to make the compiler happy
 		@SuppressWarnings("unchecked")
 		Comparable<? super K> k = (Comparable<? super K>) target;
-		
-		// the actual search
-        // TODO: Fill this in.
-        return null;
+
+		Node travelNode = root;
+
+		while (travelNode != null) {
+			int cmp = k.compareTo(travelNode.key);
+			if (cmp == 0) {
+				return travelNode;
+			} else if (cmp < 0) {
+				travelNode = travelNode.left;
+			} else {
+				travelNode = travelNode.right;
+			}
+		}
+
+		return null;
 	}
 
 	/**
 	 * Compares two keys or two values, handling null correctly.
-	 * 
+	 *
 	 * @param target
 	 * @param obj
 	 * @return
@@ -90,10 +100,20 @@ public class MyTreeMap<K, V> implements Map<K, V> {
 		return target.equals(obj);
 	}
 
+	private boolean containsValueHelper(Object target, Node root) {
+
+		if (root == null) return false;
+		if (equals(target, root.value)) return true;
+		return containsValueHelper(target, root.left) || containsValueHelper(target, root.right);
+	}
+
 	@Override
 	public boolean containsValue(Object target) {
-		return false;
+
+		return containsValueHelper(target, root);
 	}
+
+
 
 	@Override
 	public Set<Map.Entry<K, V>> entrySet() {
@@ -114,10 +134,19 @@ public class MyTreeMap<K, V> implements Map<K, V> {
 		return size == 0;
 	}
 
+
+	public void keySetHelper(Node root, Set<K> set) {
+
+		if(root == null) return;
+
+		keySetHelper(root.left, set);
+		set.add(root.key);
+		keySetHelper(root.right, set);
+	}
 	@Override
 	public Set<K> keySet() {
 		Set<K> set = new LinkedHashSet<K>();
-        // TODO: Fill this in.
+        keySetHelper(root, set);
 		return set;
 	}
 
@@ -136,7 +165,44 @@ public class MyTreeMap<K, V> implements Map<K, V> {
 
 	private V putHelper(Node node, K key, V value) {
         // TODO: Fill this in.
-        return null;
+
+		V result = null;
+		Node newNode;
+
+		@SuppressWarnings("unchecked")
+		Comparable<? super K> k = (Comparable<? super K>) key;
+		int cmp =  k.compareTo(node.key);
+
+		//System.out.println("Node key : " + node.key + " New Key : " + key);
+		//System.out.println("current size : " + size);
+
+
+		//when the key exists already.
+		if(cmp == 0) {
+			newNode = findNode(key);
+			//System.out.println("Current value : " + newNode.value + " Replacing value :" + value);
+			result = newNode.value;
+			newNode.value = value;
+		}else if (cmp < 0){
+			if(node.left == null) {
+				newNode = new Node(key, value);
+				node.left = newNode;
+				size++;
+			}else {
+				putHelper(node.left, key, value);
+			}
+		}else {
+			if(node.right == null) {
+				newNode = new Node(key, value);
+				node.right = newNode;
+				size++;
+			}else {
+				putHelper(node.right, key, value);
+			}
+		}
+
+
+        return result;
 	}
 
 	@Override
